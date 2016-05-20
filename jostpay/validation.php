@@ -8,7 +8,7 @@ $success=false;
 $home_url=(Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__;
 $order_id=0;
 
-if(empty($_GET['transactionId']))$info="Trasaction ID not supplied";
+if(empty($_GET['ref']))$info="Trasaction ID not supplied";
 else
 {
 	$transactionId=addslashes($_GET['ref']);

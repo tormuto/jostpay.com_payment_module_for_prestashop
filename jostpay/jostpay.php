@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors',1);
 ini_set('error_reporting',E_ALL);
-define('JOSTPAY_MERCHANT_ID','0000000000');
+define('JOSTPAY_MERCHANT_ID','0000');
 
 class JostPay extends PaymentModule
 {
@@ -11,20 +11,28 @@ class JostPay extends PaymentModule
 	{
 		$this->name = 'jostpay';
 		$this->tab = 'payment';
-		if(defined('_PS_VERSION_')&&_PS_VERSION_>'1.4')$this->tab = 'payment_gateways';
+		if(defined('_PS_VERSION_')&&_PS_VERSION_>'1.4')$this->tab = 'payments_gateways';
 		$this->version = '1.0';
-		$this->author = 'Ibukun Oladipo';
+		$this->author = 'JOSTPAY LIMITED';
 		$this->currencies = true;
 		$this->currencies_mode = 'checkbox';
 		$this->need_instance = 0;
 		//$this->ps_versions_compliancy = array('min' => '1.4', 'max' => _PS_VERSION_);
+		
+		
+		$this->controllers = array('payment', 'validation');
+		$this->is_eu_compatible = 1;
+		
+		$this->currencies = true;
+		$this->currencies_mode = 'checkbox';
+		
 
         parent::__construct();
 
         /* The parent construct is required for translations */
 		$this->page = basename(__FILE__, '.php');
-        $this->displayName = $this->l('JostPay Payment');
-        $this->description = $this->l('Accepts credit card payments directly through JostPay');
+        $this->displayName = $this->l('Mastercard, Visacard, Verve, Perfect Money & Bitcoin (JostPay)').$this->tab;
+        $this->description = $this->l('Accepts payments from Perfectmoney, Bitcoin, Mastercard, Visacard, Verve Card (via jostpay.com)');
 		$this->confirmUninstall = $this->l('Are you sure you want to uninstall ?');
 		//if(!Configuration::get('JOSTPAY')) $this->warning = $this->l('No name provided');
 		if (!sizeof(Currency::checkPaymentCurrencies($this->id)))
@@ -186,7 +194,7 @@ class JostPay extends PaymentModule
 					$return_url=(Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'modules/'.$this->name.'/validation.php';
 					$history_url=(Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'modules/'.$this->name.'/jostpay_transactions.php';
 		
-					$resp_str="<form action='https://jostpay.com/sci' method='post'>
+					$resp_str="<form action='https://jostpay.com/sci' method='post' id='jostpay_payment_form'>
 					<input type='hidden' name='amount' value='$total' />
 					<input type='hidden' name='merchant' value='$merchant_id' />
 					<input type='hidden' name='ref' value='$time' />
@@ -194,15 +202,22 @@ class JostPay extends PaymentModule
 					<input type='hidden' name='notification_url' value='$return_url' />
 					<input type='hidden' name='success_url' value='$return_url' />
 					<input type='hidden' name='cancel_url' value='$return_url' />
-					<button class='btn btn-lg btn-success'>PAY NOW</button>
+					<button class='btn btn-lg btn-success'>If you are not automatically redirected, please click this button</button>
 					</form>";
+					
+					echo "<!DOCTYPE html><head><title>Redirecting to JostPay</title></head><body>$resp_str<script type='text/javascript'>document.getElementById('jostpay_payment_form').submit();</script></body></html>";
+					exit;
 				}
 			}
-				
+			/*
 			$smarty->assign(array(
 					"response"=>$resp_str
 				));
 			return $this->display(__FILE__, 'payment_execution.tpl');
+			*/
+			$home_url=(Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__;
+			
+		echo "<!DOCTYPE html><head><title>Payment Error</title></head><body><h3>$resp_str</h3><a href='$home_url'>Go back home</a></body></html>";
 	}
 
 	function hookPayment($params)
